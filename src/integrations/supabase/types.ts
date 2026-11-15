@@ -14,16 +14,330 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          institution_id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          institution_id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          institution_id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      institutions: {
+        Row: {
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      professors: {
+        Row: {
+          avg_difficulty: number | null
+          avg_rating: number | null
+          created_at: string
+          department_id: string
+          id: string
+          institution_id: string
+          name: string
+          recommend_count: number
+          review_count: number
+          updated_at: string
+        }
+        Insert: {
+          avg_difficulty?: number | null
+          avg_rating?: number | null
+          created_at?: string
+          department_id: string
+          id?: string
+          institution_id: string
+          name: string
+          recommend_count?: number
+          review_count?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_difficulty?: number | null
+          avg_rating?: number | null
+          created_at?: string
+          department_id?: string
+          id?: string
+          institution_id?: string
+          name?: string
+          recommend_count?: number
+          review_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professors_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professors_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restricted_words: {
+        Row: {
+          created_at: string
+          id: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          word?: string
+        }
+        Relationships: []
+      }
+      review_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          review_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_votes: {
+        Row: {
+          created_at: string
+          review_id: string
+          user_id: string
+          vote: number
+        }
+        Insert: {
+          created_at?: string
+          review_id: string
+          user_id?: string
+          vote: number
+        }
+        Update: {
+          created_at?: string
+          review_id?: string
+          user_id?: string
+          vote?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          comment: string
+          created_at: string
+          difficulty: number
+          dislike_count: number
+          grade: string
+          id: string
+          like_count: number
+          professor_id: string
+          rating: number
+          subject_id: string
+          tags: string[]
+          updated_at: string
+          user_id: string
+          would_recommend: boolean
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          difficulty: number
+          dislike_count?: number
+          grade: string
+          id?: string
+          like_count?: number
+          professor_id: string
+          rating: number
+          subject_id: string
+          tags?: string[]
+          updated_at?: string
+          user_id?: string
+          would_recommend: boolean
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          difficulty?: number
+          dislike_count?: number
+          grade?: string
+          id?: string
+          like_count?: number
+          professor_id?: string
+          rating?: number
+          subject_id?: string
+          tags?: string[]
+          updated_at?: string
+          user_id?: string
+          would_recommend?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "professors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          professor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          professor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          professor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_professor_id_fkey"
+            columns: ["professor_id"]
+            isOneToOne: false
+            referencedRelation: "professors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      find_restricted_word: { Args: { _text: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: { Args: never; Returns: boolean }
+      my_review_ids: { Args: { _professor_id: string }; Returns: string[] }
+      refresh_professor_stats: {
+        Args: { _professor_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +464,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
