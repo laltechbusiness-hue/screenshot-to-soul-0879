@@ -78,7 +78,7 @@ export function ReviewForm({
   subjects: Subject[];
   onDone: () => void;
 }) {
-  const [subjectId, setSubjectId] = useState<string>(subjects.length === 1 ? subjects[0].id : "");
+  const [subjectId, setSubjectId] = useState<string>(subjects.length === 1 ? (subjects[0]?.id ?? "") : "");
   const [rating, setRating] = useState<number | null>(null);
   const [difficulty, setDifficulty] = useState<number | null>(null);
   const [recommend, setRecommend] = useState<boolean | null>(null);
