@@ -56,7 +56,7 @@ export function reviewErrorMessage(error: { message?: string; code?: string } | 
   const msg = error.message ?? "";
   const restricted = msg.match(/RESTRICTED_WORD:(.+)/);
   if (restricted) {
-    return `Your comment contains a word that isn't allowed ("${restricted[1].trim()}"). Please revise your comment and try again.`;
+    return `Your comment contains a word that isn't allowed ("${(restricted[1] ?? "").trim()}"). Please revise your comment and try again.`;
   }
   if (error.code === "23505") {
     return "You've already reviewed this professor for this subject.";

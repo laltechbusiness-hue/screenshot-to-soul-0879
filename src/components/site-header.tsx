@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { GraduationCap, LogOut, ShieldCheck } from "lucide-react";
+import { GraduationCap, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleButton } from "@/components/google-button";
 import { useAuth } from "@/hooks/use-auth";
 import { SITE_NAME } from "@/lib/site-config";
 
 export function SiteHeader() {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, loading, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
@@ -17,13 +17,6 @@ export function SiteHeader() {
           <span className="font-display text-xl font-semibold tracking-tight">{SITE_NAME}</span>
         </Link>
         <div className="flex items-center gap-2">
-          {isAdmin && (
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/admin">
-                <ShieldCheck /> <span className="hidden sm:inline">Admin</span>
-              </Link>
-            </Button>
-          )}
           {loading ? null : user ? (
             <Button variant="outline" size="sm" onClick={() => signOut()}>
               <LogOut /> <span className="hidden sm:inline">Sign out</span>
