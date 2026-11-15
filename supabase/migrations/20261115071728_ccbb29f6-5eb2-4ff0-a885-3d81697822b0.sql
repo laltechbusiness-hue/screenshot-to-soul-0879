@@ -1,0 +1,14 @@
+REVOKE EXECUTE ON FUNCTION public.handle_new_user_roles() FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.validate_review() FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.reviews_after_change() FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.validate_vote() FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.review_votes_after_change() FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.validate_report() FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.refresh_professor_stats(uuid) FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.find_restricted_word(text) FROM public, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.my_review_ids(uuid) FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.my_review_ids(uuid) TO authenticated;
