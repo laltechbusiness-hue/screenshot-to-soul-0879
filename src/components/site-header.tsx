@@ -1,13 +1,14 @@
 import { Link } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ReviewerProfile } from "@/components/reviewer-profile";
 import { ReviewerUsername } from "@/components/reviewer-username";
 import { GoogleButton } from "@/components/google-button";
 import { useAuth } from "@/hooks/use-auth";
 import { SITE_NAME } from "@/lib/site-config";
 
 export function SiteHeader() {
-  const { user, loading,isAdmin, signOut } = useAuth();
+  const { user, loading, isAdmin, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
@@ -21,17 +22,26 @@ export function SiteHeader() {
               <Link to="/admin">Admin</Link>
             </Button>
           )}
-          {!loading && user && <ReviewerUsername key={user.id} userId={user.id} />}
           {loading ? null : user ? (
-            <Button variant="outline" size="sm" onClick={() => signOut()}>
-              <LogOut /> <span className="hidden sm:inline">Sign out</span>
-            </Button>
+            <SignedInActions key={user.id} userId={user.id} signOut={signOut} />
           ) : (
             <GoogleButton label="Sign in with Google" className="py-[6px]" />
           )}
         </div>
       </div>
     </header>
+  );
+}
+
+function SignedInActions({ userId, signOut }: { userId: string; signOut: () => Promise<void> }) {
+  return (
+    <>
+      <ReviewerUsername userId={userId} />
+      <ReviewerProfile userId={userId} />
+      <Button variant="outline" size="sm" onClick={() => signOut()} aria-label="Sign out">
+        <LogOut /> <span className="hidden sm:inline">Sign out</span>
+      </Button>
+    </>
   );
 }
 

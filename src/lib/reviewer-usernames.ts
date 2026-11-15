@@ -12,6 +12,7 @@ type UsernameSchema = {
       };
     };
     Functions: {
+      my_profile_review_ids: { Args: { _offset: number }; Returns: { review_id: string }[] };
       set_reviewer_username: { Args: { _username: string }; Returns: string };
       review_usernames: {
         Args: { _review_ids: string[] };

@@ -79,7 +79,7 @@ export function ReviewForm({
   professorId: string;
   subjects: Subject[];
   onDone: () => void;
-  review?: ReviewRow;
+  review?: Pick<ReviewRow, "id" | "subject_id" | "rating" | "difficulty" | "would_recommend" | "grade" | "tags" | "comment">;
 }) {
   const [subjectId, setSubjectId] = useState<string>(review?.subject_id ?? (subjects.length === 1 ? (subjects[0]?.id ?? "") : ""));
   const [rating, setRating] = useState<number | null>(review?.rating ?? null);
