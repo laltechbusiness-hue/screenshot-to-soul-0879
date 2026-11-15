@@ -12,7 +12,8 @@ vi.mock("@/hooks/use-auth", () => ({
 
 vi.mock("@tanstack/react-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@tanstack/react-router")>()),
-  Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
+  useRouterState: () => false,
+  Link: ({ children, to }: { children: ReactNode; to: string }) => <a href={to}>{children}</a>,
 }));
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -24,11 +25,10 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-it.each([false, true])("opens Profile next to Sign out (admin: %s)", async (isAdmin) => {
+it.each([false, true])("links to Profile next to Sign out (admin: %s)", async (isAdmin) => {
   auth.isAdmin = isAdmin;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(["reviewer-username", "reviewer"], "CampusFox");
-  client.setQueryData(["profile-reviews", "reviewer", 0], { rows: [], hasNext: false });
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
@@ -41,14 +41,12 @@ it.each([false, true])("opens Profile next to Sign out (admin: %s)", async (isAd
         </QueryClientProvider>,
       );
     });
-    const profile = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Profile");
+    const profile = Array.from(container.querySelectorAll("a")).find(
+      (button) => button.textContent === "Profile",
+    );
     if (!profile) throw new Error("Profile button is missing");
     expect(profile.nextElementSibling?.getAttribute("aria-label")).toBe("Sign out");
-    await act(async () => profile.click());
-    const dialog = document.querySelector('[role="dialog"]');
-    expect(dialog?.querySelector("h2")?.textContent).toBe("Profile");
-    expect(dialog?.querySelector("input")?.value).toBe("CampusFox");
-    expect(dialog?.textContent).toContain("You haven't written any reviews yet.");
+    expect(profile.getAttribute("href")).toBe("/profile");
   } finally {
     await act(async () => root.unmount());
     container.remove();

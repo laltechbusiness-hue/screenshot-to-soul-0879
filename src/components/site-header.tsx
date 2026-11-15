@@ -1,7 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ReviewerProfile } from "@/components/reviewer-profile";
 import { ReviewerUsername } from "@/components/reviewer-username";
 import { GoogleButton } from "@/components/google-button";
 import { useAuth } from "@/hooks/use-auth";
@@ -34,10 +33,13 @@ export function SiteHeader() {
 }
 
 function SignedInActions({ userId, signOut }: { userId: string; signOut: () => Promise<void> }) {
+  const onProfile = useRouterState({ select: (state) => state.location.pathname === "/profile" });
   return (
     <>
-      <ReviewerUsername userId={userId} />
-      <ReviewerProfile userId={userId} />
+      {!onProfile && <ReviewerUsername userId={userId} />}
+      <Button asChild variant="outline" size="sm">
+        <Link to="/profile">Profile</Link>
+      </Button>
       <Button variant="outline" size="sm" onClick={() => signOut()} aria-label="Sign out">
         <LogOut /> <span className="hidden sm:inline">Sign out</span>
       </Button>
@@ -50,6 +52,10 @@ export function SiteFooter() {
     <footer className="mt-16 border-t border-border">
       <div className="mx-auto max-w-5xl px-4 py-8 text-sm text-muted-foreground">
         Reviews are written anonymously by students and reflect their personal experience.
+        <nav aria-label="Legal" className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+          <Link to="/privacy" className="underline underline-offset-4">Privacy Policy</Link>
+          <Link to="/terms" className="underline underline-offset-4">Terms of Service</Link>
+        </nav>
         <p className="mt-2">
           <a href="https://www.flaticon.com/free-icons/academic" title="academic icons">Academic icons created by kerismaker - Flaticon</a>
       </p>

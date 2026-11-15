@@ -128,7 +128,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { pathname } = useLocation();
-  const isPublic = !pathname.startsWith("/admin") && !pathname.startsWith("/auth");
+  const isPublic = !pathname.startsWith("/admin") && !pathname.startsWith("/auth") && pathname !== "/profile";
 
   return (
     <QueryClientProvider client={queryClient}>

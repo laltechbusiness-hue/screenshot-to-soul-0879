@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as InstitutionsInstitutionIdRouteImport } from './routes/institutions.$institutionId'
 import { Route as ProfessorsProfessorIdRouteImport } from './routes/professors.$professorId'
 
@@ -30,6 +33,21 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstitutionsInstitutionIdRoute =
   InstitutionsInstitutionIdRouteImport.update({
     id: '/institutions/$institutionId',
@@ -46,6 +64,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
 }
@@ -53,6 +74,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
 }
@@ -61,6 +85,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/auth': typeof AuthRoute
+  '/privacy': typeof PrivacyRoute
+  '/profile': typeof ProfileRoute
+  '/terms': typeof TermsRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
 }
@@ -70,6 +97,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/privacy'
+    | '/profile'
+    | '/terms'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
   fileRoutesByTo: FileRoutesByTo
@@ -77,6 +107,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/privacy'
+    | '/profile'
+    | '/terms'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
   id:
@@ -84,6 +117,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/privacy'
+    | '/profile'
+    | '/terms'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
   fileRoutesById: FileRoutesById
@@ -92,6 +128,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AuthRoute: typeof AuthRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ProfileRoute: typeof ProfileRoute
+  TermsRoute: typeof TermsRoute
   InstitutionsInstitutionIdRoute: typeof InstitutionsInstitutionIdRoute
   ProfessorsProfessorIdRoute: typeof ProfessorsProfessorIdRoute
 }
@@ -119,6 +158,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/institutions/$institutionId': {
       id: '/institutions/$institutionId'
       path: '/institutions/$institutionId'
@@ -140,6 +200,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AuthRoute: AuthRoute,
+  PrivacyRoute: PrivacyRoute,
+  ProfileRoute: ProfileRoute,
+  TermsRoute: TermsRoute,
   InstitutionsInstitutionIdRoute: InstitutionsInstitutionIdRoute,
   ProfessorsProfessorIdRoute: ProfessorsProfessorIdRoute,
 }
