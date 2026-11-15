@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -56,7 +56,7 @@ function ScalePicker({
   );
 }
 
-function Field({ step, label, children, hint }: { step: number; label: string; children: React.ReactNode; hint?: string }) {
+function Field({ step, label, children, hint }: { step: number; label: string; children: ReactNode; hint?: string }) {
   return (
     <div className="space-y-2">
       <Label className="flex items-baseline gap-2 text-sm font-semibold">
@@ -88,7 +88,7 @@ export function ReviewForm({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     const parsed = reviewSchema.safeParse({
