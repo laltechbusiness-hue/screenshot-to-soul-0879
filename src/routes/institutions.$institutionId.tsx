@@ -14,7 +14,7 @@ export const Route = createFileRoute("/institutions/$institutionId")({
     return { name: data.institution.name, location: data.institution.location };
   },
   head: ({ loaderData }) => {
-    const title = loaderData ? `Professors at ${loaderData.name} — ProfRate` : "College not found — ProfRate";
+    const title = loaderData ? `Professors at ${loaderData.name} — Faculty Reviews` : "College not found — Faculty Reviews";
     const description = loaderData
       ? `Ratings and anonymous student reviews for professors at ${loaderData.name}${loaderData.location ? `, ${loaderData.location}` : ""}.`
       : "This college or university could not be found.";

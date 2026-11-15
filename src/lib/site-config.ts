@@ -5,4 +5,4 @@
 export const ADSENSE_CLIENT = ""; // e.g. "ca-pub-1234567890123456"
 export const ADSENSE_SLOT = ""; // e.g. "1234567890"
 
-export const SITE_NAME = "ProfRate";
+export const SITE_NAME = "Faculty Reviews";

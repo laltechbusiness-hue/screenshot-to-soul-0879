@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { GoogleButton } from "@/components/google-button";
 import { RatingTile } from "@/components/rating";
 import { ReviewCard } from "@/components/review-card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ReviewForm } from "@/components/review-form";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,8 +24,8 @@ export const Route = createFileRoute("/professors/$professorId")({
   },
   head: ({ loaderData }) => {
     const title = loaderData
-      ? `${loaderData.name}, ${loaderData.institution} — Reviews on ProfRate`
-      : "Professor not found — ProfRate";
+      ? `${loaderData.name}, ${loaderData.institution} — Reviews on Faculty Reviews`
+      : "Professor not found — Faculty Reviews";
     const description = loaderData
       ? loaderData.count
         ? `${loaderData.name} is rated ${Number(loaderData.avg).toFixed(1)}/5 by ${loaderData.count} student${loaderData.count === 1 ? "" : "s"} at ${loaderData.institution}. Read anonymous reviews.`
@@ -60,6 +61,7 @@ function ProfessorPage() {
   const qc = useQueryClient();
   const { data } = useSuspenseQuery(professorQuery(professorId));
   const { user, isAdmin, signInWithGoogle } = useAuth();
+  const [editing, setEditing] = useState<{ review: ReviewRow; userId: string } | null>(null);
   const [writing, setWriting] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
   const uid = user?.id;
@@ -153,11 +155,16 @@ function ProfessorPage() {
 
   async function remove(review: ReviewRow) {
     if (!confirm("Remove this review permanently?")) return;
-    const { error } = await supabase.from("reviews").delete().eq("id", review.id);
+    const { data: deleted, error } = await supabase.from("reviews").delete().eq("id", review.id).select("id").maybeSingle();
     if (error) {
       toast.error(error.message);
       return;
     }
+    if (!deleted) {
+      toast.error("This review could not be deleted.");
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["my-reviews", professorId] });
     toast.success("Review removed");
     refresh();
   }
@@ -284,6 +291,27 @@ function ProfessorPage() {
         )}
       </section>
 
+      <Dialog open={!!editing && editing.userId === uid} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Edit your review</DialogTitle>
+            <DialogDescription>Update your rating and feedback for this subject.</DialogDescription>
+          </DialogHeader>
+          {editing && editing.userId === uid && (
+            <ReviewForm
+              key={editing.review.id}
+              review={editing.review}
+              professorId={professorId}
+              subjects={subjects}
+              onDone={() => {
+                setEditing(null);
+                refresh();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <section className="mt-10">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-2xl font-semibold">
@@ -321,6 +349,7 @@ function ProfessorPage() {
               isAdmin={isAdmin}
               onVote={(v) => vote(r, v)}
               onReport={(reason) => report(r, reason)}
+              onEdit={() => user && setEditing({ review: r, userId: user.id })}
               onRemove={() => remove(r)}
               onNeedSignIn={() => {
                 toast("Sign in with Google to like, dislike or report reviews.", {

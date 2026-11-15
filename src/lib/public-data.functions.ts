@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { withReviewerUsernames } from "@/lib/reviewer-usernames";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
@@ -85,5 +86,17 @@ export const getProfessor = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(500);
     if (rErr) throw new Error(rErr.message);
-    return { professor: prof, reviews: reviews ?? [] };
+    const rows = reviews ?? [];
+    const usernames = new Map<string, string>();
+    if (rows.length) {
+      const { data: names, error } = await withReviewerUsernames(sb).rpc("review_usernames", {
+        _review_ids: rows.map((review) => review.id),
+      });
+      if (error && error.code !== "PGRST202") throw new Error(error.message);
+      for (const name of names ?? []) usernames.set(name.review_id, name.username);
+    }
+    return {
+      professor: prof,
+      reviews: rows.map((review) => ({ ...review, username: usernames.get(review.id) ?? null })),
+    };
   });

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Flag, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import { Flag, PenLine, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ export type ReviewCardProps = {
   isAdmin: boolean;
   onVote: (vote: -1 | 1) => void;
   onReport: (reason: string) => Promise<boolean>;
+  onEdit?: () => void;
   onRemove: () => void;
   onNeedSignIn: () => void;
 };
@@ -40,6 +41,7 @@ export function ReviewCard({
   isAdmin,
   onVote,
   onReport,
+  onEdit,
   onRemove,
   onNeedSignIn,
 }: ReviewCardProps) {
@@ -61,7 +63,7 @@ export function ReviewCard({
             {isMine && <Badge variant="secondary">Your review</Badge>}
           </div>
           <p className="text-xs text-muted-foreground">
-            Anonymous student · {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
+            {review.username ?? "Anonymous student"} · {formatDistanceToNow(new Date(review.created_at), { addSuffix: true })}
           </p>
         </div>
       </div>
@@ -130,9 +132,14 @@ export function ReviewCard({
               <Flag /> {reported ? "Reported" : "Report"}
             </Button>
           )}
-          {isAdmin && (
+          {isMine && onEdit && (
+            <Button variant="ghost" size="sm" onClick={onEdit}>
+              <PenLine /> Edit
+            </Button>
+          )}
+          {(isMine || isAdmin) && (
             <Button variant="ghost" size="sm" className="text-destructive" onClick={onRemove}>
-              <Trash2 /> Remove
+              <Trash2 /> {isMine ? "Delete" : "Remove"}
             </Button>
           )}
         </div>

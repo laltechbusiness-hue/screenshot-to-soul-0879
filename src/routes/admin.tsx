@@ -32,7 +32,7 @@ function AdminPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
-      <h1 className="text-3xl font-semibold">ProfRate administration</h1>
+      <h1 className="text-3xl font-semibold">Faculty Reviews administration</h1>
 
       {loading || (user && role.isPending) ? (
         <p role="status">Checking access…</p>

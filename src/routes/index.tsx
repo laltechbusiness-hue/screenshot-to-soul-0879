@@ -14,12 +14,12 @@ export const Route = createFileRoute("/")({
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(institutionsQuery(deps.q)),
   head: () => ({
     meta: [
-      { title: "ProfRate — Find professor reviews by college or university" },
+      { title: "Faculty Reviews — Find Faculty reviews by college or university" },
       {
         name: "description",
         content: "Search your college or university, find your professors, and read honest, anonymous student ratings and reviews.",
       },
-      { property: "og:title", content: "ProfRate — Find professor reviews by college or university" },
+      { property: "og:title", content: "Faculty Reviews — Find Faculty reviews by college or university" },
       { property: "og:description", content: "Search your college, find your professors, and read anonymous student reviews." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

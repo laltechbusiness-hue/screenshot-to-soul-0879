@@ -17,6 +17,7 @@ import {
   reviewSchema,
   toggleTag,
 } from "@/lib/review-rules";
+import type { ReviewRow } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
 type Subject = { id: string; name: string };
@@ -73,18 +74,20 @@ export function ReviewForm({
   professorId,
   subjects,
   onDone,
+  review,
 }: {
   professorId: string;
   subjects: Subject[];
   onDone: () => void;
+  review?: ReviewRow;
 }) {
-  const [subjectId, setSubjectId] = useState<string>(subjects.length === 1 ? (subjects[0]?.id ?? "") : "");
-  const [rating, setRating] = useState<number | null>(null);
-  const [difficulty, setDifficulty] = useState<number | null>(null);
-  const [recommend, setRecommend] = useState<boolean | null>(null);
-  const [grade, setGrade] = useState<string>("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [comment, setComment] = useState("");
+  const [subjectId, setSubjectId] = useState<string>(review?.subject_id ?? (subjects.length === 1 ? (subjects[0]?.id ?? "") : ""));
+  const [rating, setRating] = useState<number | null>(review?.rating ?? null);
+  const [difficulty, setDifficulty] = useState<number | null>(review?.difficulty ?? null);
+  const [recommend, setRecommend] = useState<boolean | null>(review?.would_recommend ?? null);
+  const [grade, setGrade] = useState<string>(review?.grade ?? "");
+  const [tags, setTags] = useState<string[]>(review?.tags ?? []);
+  const [comment, setComment] = useState(review?.comment ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -105,22 +108,34 @@ export function ReviewForm({
       return;
     }
     setSaving(true);
-    const { error: dbError } = await supabase
-      .from("reviews")
-      .insert({ ...parsed.data, professor_id: professorId });
+    const changes = {
+      rating: parsed.data.rating,
+      difficulty: parsed.data.difficulty,
+      would_recommend: parsed.data.would_recommend,
+      grade: parsed.data.grade,
+      tags: parsed.data.tags,
+      comment: parsed.data.comment,
+    };
+    const { data: saved, error: dbError } = review
+      ? await supabase.from("reviews").update(changes).eq("id", review.id).select("id").maybeSingle()
+      : await supabase.from("reviews").insert({ ...parsed.data, professor_id: professorId }).select("id").single();
     setSaving(false);
     if (dbError) {
       setError(reviewErrorMessage(dbError));
       return;
     }
-    toast.success("Your review is published. Thank you!");
+    if (!saved) {
+      setError("This review could not be saved.");
+      return;
+    }
+    toast.success(review ? "Review updated" : "Your review is published. Thank you!");
     onDone();
   }
 
   return (
     <form onSubmit={submit} className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-soft sm:p-6">
       <Field step={1} label="Subject taken">
-        <Select value={subjectId} onValueChange={setSubjectId}>
+        <Select value={subjectId} onValueChange={setSubjectId} disabled={!!review}>
           <SelectTrigger aria-label="Subject taken">
             <SelectValue placeholder="Choose a subject" />
           </SelectTrigger>
@@ -220,7 +235,7 @@ export function ReviewForm({
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">Published anonymously.</p>
         <Button type="submit" size="lg" disabled={saving}>
-          {saving && <Loader2 className="animate-spin" />} Publish review
+          {saving && <Loader2 className="animate-spin" />} {review ? "Save changes" : "Publish review"}
         </Button>
       </div>
     </form>
