@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { SITE_NAME } from "@/lib/site-config";
 
 export function SiteHeader() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading,isAdmin, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
@@ -17,6 +17,11 @@ export function SiteHeader() {
           <span className="font-display text-xl font-semibold tracking-tight">{SITE_NAME}</span>
         </Link>
         <div className="flex items-center gap-2">
+          {!loading && user && isAdmin && (
+            <Button asChild variant="outline" size="sm">
+              <Link to="/admin">Admin</Link>
+            </Button>
+          )}
           {loading ? null : user ? (
             <Button variant="outline" size="sm" onClick={() => signOut()}>
               <LogOut /> <span className="hidden sm:inline">Sign out</span>

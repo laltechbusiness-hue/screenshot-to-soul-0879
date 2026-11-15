@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as InstitutionsInstitutionIdRouteImport } from './routes/institutions.$institutionId'
 import { Route as ProfessorsProfessorIdRouteImport } from './routes/professors.$professorId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstitutionsInstitutionIdRoute =
@@ -32,34 +44,54 @@ const ProfessorsProfessorIdRoute = ProfessorsProfessorIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/auth': typeof AuthRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/institutions/$institutionId' | '/professors/$professorId'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/institutions/$institutionId'
+    | '/professors/$professorId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/institutions/$institutionId' | '/professors/$professorId'
+  to:
+    | '/'
+    | '/admin'
+    | '/auth'
+    | '/institutions/$institutionId'
+    | '/professors/$professorId'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/auth'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AuthRoute: typeof AuthRoute
   InstitutionsInstitutionIdRoute: typeof InstitutionsInstitutionIdRoute
   ProfessorsProfessorIdRoute: typeof ProfessorsProfessorIdRoute
 }
@@ -71,6 +103,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/institutions/$institutionId': {
@@ -92,6 +138,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AuthRoute: AuthRoute,
   InstitutionsInstitutionIdRoute: InstitutionsInstitutionIdRoute,
   ProfessorsProfessorIdRoute: ProfessorsProfessorIdRoute,
 }
