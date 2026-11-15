@@ -1,0 +1,228 @@
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  DIFFICULTY_LABELS,
+  GRADES,
+  MAX_TAGS,
+  RATING_LABELS,
+  REVIEW_TAGS,
+  reviewErrorMessage,
+  reviewSchema,
+  toggleTag,
+} from "@/lib/review-rules";
+import { cn } from "@/lib/utils";
+
+type Subject = { id: string; name: string };
+
+function ScalePicker({
+  name,
+  labels,
+  value,
+  onChange,
+}: {
+  name: string;
+  labels: Record<number, string>;
+  value: number | null;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div role="radiogroup" aria-label={name} className="grid grid-cols-5 gap-1.5">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          role="radio"
+          aria-checked={value === n}
+          onClick={() => onChange(n)}
+          className={cn(
+            "flex flex-col items-center gap-0.5 rounded-xl border px-1 py-2.5 text-center transition-colors",
+            value === n
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-input bg-card hover:bg-accent",
+          )}
+        >
+          <span className="font-display text-lg font-semibold leading-none">{n}</span>
+          <span className="text-[11px] leading-tight sm:text-xs">{labels[n]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Field({ step, label, children, hint }: { step: number; label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div className="space-y-2">
+      <Label className="flex items-baseline gap-2 text-sm font-semibold">
+        <span className="text-xs font-medium text-muted-foreground">{step}.</span>
+        {label}
+      </Label>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {children}
+    </div>
+  );
+}
+
+export function ReviewForm({
+  professorId,
+  subjects,
+  onDone,
+}: {
+  professorId: string;
+  subjects: Subject[];
+  onDone: () => void;
+}) {
+  const [subjectId, setSubjectId] = useState<string>(subjects.length === 1 ? subjects[0].id : "");
+  const [rating, setRating] = useState<number | null>(null);
+  const [difficulty, setDifficulty] = useState<number | null>(null);
+  const [recommend, setRecommend] = useState<boolean | null>(null);
+  const [grade, setGrade] = useState<string>("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const parsed = reviewSchema.safeParse({
+      subject_id: subjectId,
+      rating: rating ?? 0,
+      difficulty: difficulty ?? 0,
+      would_recommend: recommend ?? undefined,
+      grade: grade || undefined,
+      tags,
+      comment,
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Please complete the form");
+      return;
+    }
+    setSaving(true);
+    const { error: dbError } = await supabase
+      .from("reviews")
+      .insert({ ...parsed.data, professor_id: professorId });
+    setSaving(false);
+    if (dbError) {
+      setError(reviewErrorMessage(dbError));
+      return;
+    }
+    toast.success("Your review is published. Thank you!");
+    onDone();
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-soft sm:p-6">
+      <Field step={1} label="Subject taken">
+        <Select value={subjectId} onValueChange={setSubjectId}>
+          <SelectTrigger aria-label="Subject taken">
+            <SelectValue placeholder="Choose a subject" />
+          </SelectTrigger>
+          <SelectContent>
+            {subjects.map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Field step={2} label="Overall professor rating">
+        <ScalePicker name="Overall professor rating" labels={RATING_LABELS} value={rating} onChange={setRating} />
+      </Field>
+
+      <Field step={3} label="How difficult or strict is the professor?">
+        <ScalePicker name="Difficulty" labels={DIFFICULTY_LABELS} value={difficulty} onChange={setDifficulty} />
+      </Field>
+
+      <Field step={4} label="Would you recommend this professor to other students?">
+        <div role="radiogroup" aria-label="Would you recommend" className="grid grid-cols-2 gap-2 sm:max-w-xs">
+          {[true, false].map((v) => (
+            <button
+              key={String(v)}
+              type="button"
+              role="radio"
+              aria-checked={recommend === v}
+              onClick={() => setRecommend(v)}
+              className={cn(
+                "rounded-xl border px-4 py-2.5 font-medium transition-colors",
+                recommend === v ? "border-primary bg-primary text-primary-foreground" : "border-input bg-card hover:bg-accent",
+              )}
+            >
+              {v ? "Yes" : "No"}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <Field step={5} label="Grade received in the subject">
+        <Select value={grade} onValueChange={setGrade}>
+          <SelectTrigger aria-label="Grade received" className="sm:max-w-xs">
+            <SelectValue placeholder="Choose your grade" />
+          </SelectTrigger>
+          <SelectContent>
+            {GRADES.map((g) => (
+              <SelectItem key={g} value={g}>
+                {g}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+
+      <Field step={6} label="Tags" hint={`Optional — choose up to ${MAX_TAGS}.`}>
+        <div className="flex flex-wrap gap-2">
+          {REVIEW_TAGS.map((t) => {
+            const on = tags.includes(t);
+            const full = !on && tags.length >= MAX_TAGS;
+            return (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={on}
+                disabled={full}
+                onClick={() => setTags((cur) => toggleTag(cur, t))}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 text-sm transition-colors disabled:opacity-40",
+                  on ? "border-primary bg-primary-soft text-accent-foreground" : "border-input bg-card hover:bg-accent",
+                )}
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+
+      <Field step={7} label="Your experience">
+        <Textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value.slice(0, 2000))}
+          rows={5}
+          placeholder="What was the class like? How did the professor teach, grade, and support students?"
+        />
+        <p className="text-right text-xs text-muted-foreground">{comment.length}/2000</p>
+      </Field>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-muted-foreground">Published anonymously.</p>
+        <Button type="submit" size="lg" disabled={saving}>
+          {saving && <Loader2 className="animate-spin" />} Publish review
+        </Button>
+      </div>
+    </form>
+  );
+}
