@@ -226,7 +226,8 @@ export type Database = {
           like_count: number
           professor_id: string
           rating: number
-          subject_id: string
+          subject_id: string | null
+          subject_name: string
           tags: string[]
           updated_at: string
           user_id: string
@@ -242,7 +243,8 @@ export type Database = {
           like_count?: number
           professor_id: string
           rating: number
-          subject_id: string
+          subject_id?: string | null
+          subject_name: string
           tags?: string[]
           updated_at?: string
           user_id?: string
@@ -258,7 +260,8 @@ export type Database = {
           like_count?: number
           professor_id?: string
           rating?: number
-          subject_id?: string
+          subject_id?: string | null
+          subject_name?: string
           tags?: string[]
           updated_at?: string
           user_id?: string
@@ -270,13 +273,6 @@ export type Database = {
             columns: ["professor_id"]
             isOneToOne: false
             referencedRelation: "professors"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
@@ -336,6 +332,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_site_stats: { Args: never; Returns: Json }
+      check_restricted_text: { Args: { _text: string }; Returns: string }
       find_restricted_word: { Args: { _text: string }; Returns: string }
       has_role: {
         Args: {
