@@ -200,6 +200,21 @@ export type Database = {
           },
         ]
       }
+      reviewer_usernames: {
+        Row: {
+          user_id: string
+          username: string
+        }
+        Insert: {
+          user_id: string
+          username: string
+        }
+        Update: {
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string
@@ -330,11 +345,25 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      my_profile_review_ids: {
+        Args: { _offset: number }
+        Returns: {
+          review_id: string
+        }[]
+      }
       my_review_ids: { Args: { _professor_id: string }; Returns: string[] }
       refresh_professor_stats: {
         Args: { _professor_id: string }
         Returns: undefined
       }
+      review_usernames: {
+        Args: { _review_ids: string[] }
+        Returns: {
+          review_id: string
+          username: string
+        }[]
+      }
+      set_reviewer_username: { Args: { _username: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"
