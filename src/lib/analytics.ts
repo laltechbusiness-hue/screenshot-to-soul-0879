@@ -1,5 +1,5 @@
 /** Google Analytics 4 (browser tracking). The measurement ID is public. */
-const MEASUREMENT_ID = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY as string | undefined;
+const MEASUREMENT_ID = import.meta.env["VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY"] as string | undefined;
 
 declare global {
   interface Window {
