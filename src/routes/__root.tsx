@@ -15,7 +15,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
-import { AdBanner } from "@/components/ad-banner";
+import { SiteAds } from "@/components/ads";
+import { initAnalytics, trackPageView } from "@/lib/analytics";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -127,7 +128,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const { pathname } = useLocation();
+  const { pathname, searchStr } = useLocation();
+
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  useEffect(() => {
+    // Wait a tick so the new page's title is in place.
+    const t = setTimeout(() => trackPageView(pathname + searchStr), 0);
+    return () => clearTimeout(t);
+  }, [pathname, searchStr]);
+
   const isPublic = !pathname.startsWith("/admin") && !pathname.startsWith("/auth") && pathname !== "/profile";
 
   return (
@@ -135,11 +147,12 @@ function RootComponent() {
       <AuthProvider>
         <div className="flex min-h-screen flex-col">
           <SiteHeader />
-          {isPublic && <AdBanner />}
+          {isPublic && <SiteAds position="sides" />}
           <main className="flex-1">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </main>
+          {isPublic && <SiteAds position="bottom" />}
           <SiteFooter />
         </div>
         <Toaster position="top-center" />
