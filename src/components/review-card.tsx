@@ -48,7 +48,7 @@ export function ReviewCard({
   const [reportOpen, setReportOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [sending, setSending] = useState(false);
-  const subject = (review.subjects as { name: string } | null)?.name;
+  const subject = review.subject_name;
 
   const guard = (fn: () => void) => () => (signedIn ? fn() : onNeedSignIn());
 

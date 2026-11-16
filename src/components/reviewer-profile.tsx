@@ -29,7 +29,7 @@ export function ReviewerProfile({ userId }: { userId: string }) {
       const { data, error: reviewError } = await supabase
         .from("reviews")
         .select(
-          "id, professor_id, subject_id, rating, difficulty, would_recommend, grade, tags, comment, professors(name), subjects(name)",
+          "id, professor_id, subject_name, rating, difficulty, would_recommend, grade, tags, comment, professors(name)",
         )
         .in(
           "id",
@@ -97,7 +97,7 @@ export function ReviewerProfile({ userId }: { userId: string }) {
               {review.professors?.name ?? "Professor"}
             </Link>
             <p className="text-sm text-muted-foreground">
-              {review.subjects?.name} · {review.rating}/5
+              {review.subject_name} · {review.rating}/5
             </p>
             {editing === review.id ? (
               <>
@@ -107,7 +107,6 @@ export function ReviewerProfile({ userId }: { userId: string }) {
                 <ReviewForm
                   review={review}
                   professorId={review.professor_id}
-                  subjects={[{ id: review.subject_id, name: review.subjects?.name ?? "Subject" }]}
                   onDone={() => {
                     setEditing(null);
                     refresh();

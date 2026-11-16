@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { GoogleButton } from "@/components/google-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -52,7 +51,6 @@ function AdminPage() {
 function AdminPanel({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
   const [institutionId, setInstitutionId] = useState("");
-  const [professorId, setProfessorId] = useState("");
   const [busy, setBusy] = useState(false);
 
   const directoryKey = ["admin-directory", userId];
@@ -62,22 +60,18 @@ function AdminPanel({ userId }: { userId: string }) {
   const directory = useQuery({
     queryKey: directoryKey,
     queryFn: async () => {
-      const [institutions, departments, professors, subjects] = await Promise.all([
+      const [institutions, departments] = await Promise.all([
         supabase.from("institutions").select("id,name").order("name"),
         supabase.from("departments").select("id,name,institution_id").order("name"),
-        supabase.from("professors").select("id,name,institution_id").order("name"),
-        supabase.from("subjects").select("id,name,professor_id").order("name"),
       ]);
 
-      for (const result of [institutions, departments, professors, subjects]) {
+      for (const result of [institutions, departments]) {
         if (result.error) throw result.error;
       }
 
       return {
         institutions: institutions.data ?? [],
         departments: departments.data ?? [],
-        professors: professors.data ?? [],
-        subjects: subjects.data ?? [],
       };
     },
   });
@@ -111,12 +105,6 @@ function AdminPanel({ userId }: { userId: string }) {
   const institutions = directory.data?.institutions ?? [];
   const departments = directory.data?.departments.filter(
     (department) => department.institution_id === institutionId,
-  ) ?? [];
-  const professors = directory.data?.professors.filter(
-    (professor) => professor.institution_id === institutionId,
-  ) ?? [];
-  const subjects = directory.data?.subjects.filter(
-    (subject) => subject.professor_id === professorId,
   ) ?? [];
 
   async function refreshDirectory() {
@@ -160,6 +148,8 @@ function AdminPanel({ userId }: { userId: string }) {
 
   return (
     <>
+      <SiteStats userId={userId} />
+
       <Section title="Colleges and professors">
         {directory.isPending && <p role="status">Loading directory…</p>}
         {directory.isError && <p role="alert">Could not load the directory.</p>}
@@ -181,7 +171,6 @@ function AdminPanel({ userId }: { userId: string }) {
                 if (error) throw error;
                 await refreshDirectory();
                 setInstitutionId(data.id);
-                setProfessorId("");
               }, "Institution added")}
             >
               <Field label="College or university name">
@@ -199,7 +188,6 @@ function AdminPanel({ userId }: { userId: string }) {
                 value={institutionId}
                 onChange={(event) => {
                   setInstitutionId(event.target.value);
-                  setProfessorId("");
                 }}
               >
                 <option value="">Select an institution</option>
@@ -233,20 +221,15 @@ function AdminPanel({ userId }: { userId: string }) {
                 <form
                   className="grid content-start gap-3"
                   onSubmit={submit(async (fields) => {
-                    const { data, error } = await supabase
-                      .from("professors")
-                      .insert({
-                        institution_id: institutionId,
-                        department_id: read(fields, "department"),
-                        name: read(fields, "name"),
-                      })
-                      .select("id")
-                      .single();
+                    const { error } = await supabase.from("professors").insert({
+                      institution_id: institutionId,
+                      department_id: read(fields, "department"),
+                      name: read(fields, "name"),
+                    });
 
                     if (error) throw error;
                     await refreshDirectory();
-                    setProfessorId(data.id);
-                  }, "Professor added. You can now add their subjects.")}
+                  }, "Professor added")}
                 >
                   <Field label="Professor name">
                     <Input name="name" required minLength={2} maxLength={200} />
@@ -273,70 +256,6 @@ function AdminPanel({ userId }: { userId: string }) {
               </div>
             )}
 
-            {professors.length > 0 && (
-              <div className="grid gap-3 border-t pt-4">
-                <Field label="Professor to assign subjects to">
-                  <select
-                    className={selectClass}
-                    value={professorId}
-                    onChange={(event) => setProfessorId(event.target.value)}
-                  >
-                    <option value="">Select a professor</option>
-                    {professors.map((professor) => (
-                      <option key={professor.id} value={professor.id}>
-                        {professor.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                {professorId && (
-                  <>
-                    {subjects.length > 0 && (
-                      <ul className="list-disc pl-5 text-sm">
-                        {subjects.map((subject) => (
-                          <li key={subject.id}>{subject.name}</li>
-                        ))}
-                      </ul>
-                    )}
-                    <form
-                      key={professorId}
-                      className="grid gap-3"
-                      onSubmit={submit(async (fields) => {
-                        const existing = new Set(
-                          subjects.map((subject) => subject.name.trim().toLowerCase()),
-                        );
-                        const rows: { professor_id: string; name: string }[] = [];
-
-                        for (const line of read(fields, "subjects").split(/\r?\n/)) {
-                          const name = line.trim();
-                          const normalized = name.toLowerCase();
-                          if (!name || existing.has(normalized)) continue;
-                          if (name.length > 200) {
-                            throw new Error("Each subject must be 200 characters or fewer.");
-                          }
-                          existing.add(normalized);
-                          rows.push({ professor_id: professorId, name });
-                        }
-
-                        if (rows.length === 0) {
-                          throw new Error("Enter at least one new subject.");
-                        }
-
-                        const { error } = await supabase.from("subjects").insert(rows);
-                        if (error) throw error;
-                        await refreshDirectory();
-                      }, "Subjects added")}
-                    >
-                      <Field label="New subjects, one per line">
-                        <Textarea name="subjects" required rows={3} />
-                      </Field>
-                      <div><Button disabled={busy}>Add subjects</Button></div>
-                    </form>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         )}
       </Section>
@@ -458,4 +377,102 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
       {children}
     </section>
   );
+}
+
+type StatRow = { period: string; users: number; reviews: number };
+type SiteStatsData = { total_users: number; total_reviews: number; daily: StatRow[]; monthly: StatRow[] };
+
+function SiteStats({ userId }: { userId: string }) {
+  const [view, setView] = useState<"daily" | "monthly">("daily");
+  const stats = useQuery({
+    queryKey: ["admin-stats", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_site_stats");
+      if (error) throw error;
+      return data as unknown as SiteStatsData;
+    },
+  });
+
+  const rows = stats.data ? stats.data[view] : [];
+  const today = stats.data?.daily[0];
+  const thisMonth = stats.data?.monthly[0];
+
+  return (
+    <Section title="Site activity">
+      {stats.isPending && <p role="status">Loading activity…</p>}
+      {stats.isError && <p role="alert">Could not load site activity.</p>}
+      {stats.data && (
+        <>
+          <dl className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Stat label="Total users" value={stats.data.total_users} />
+            <Stat label="Total reviews" value={stats.data.total_reviews} />
+            <Stat label="New users today" value={today?.users ?? 0} />
+            <Stat label="New users this month" value={thisMonth?.users ?? 0} />
+          </dl>
+
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-semibold">New users and reviews</h3>
+            <div className="flex rounded-lg border border-border bg-card p-0.5 text-sm" role="group" aria-label="Group by">
+              {(["daily", "monthly"] as const).map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={view === v}
+                  onClick={() => setView(v)}
+                  className={
+                    view === v
+                      ? "rounded-md bg-primary px-3 py-1 text-primary-foreground"
+                      : "rounded-md px-3 py-1 text-muted-foreground hover:text-foreground"
+                  }
+                >
+                  {v === "daily" ? "Per day" : "Per month"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="max-h-80 overflow-y-auto rounded-md border">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-muted text-left">
+                <tr>
+                  <th className="px-3 py-2 font-medium">{view === "daily" ? "Day" : "Month"}</th>
+                  <th className="px-3 py-2 text-right font-medium">New users</th>
+                  <th className="px-3 py-2 text-right font-medium">Reviews</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.period} className="border-t">
+                    <td className="px-3 py-2">{formatPeriod(row.period, view)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{row.users}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{row.reviews}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {view === "daily" ? "Last 30 days" : "Last 12 months"}, India time.
+          </p>
+        </>
+      )}
+    </Section>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-muted/70 p-3">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="font-display text-2xl font-semibold tabular-nums">{value.toLocaleString()}</dd>
+    </div>
+  );
+}
+
+function formatPeriod(period: string, view: "daily" | "monthly") {
+  const [y, m, d] = period.split("-").map(Number);
+  const date = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1));
+  return date.toLocaleDateString("en-IN", view === "daily"
+    ? { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }
+    : { month: "long", year: "numeric", timeZone: "UTC" });
 }

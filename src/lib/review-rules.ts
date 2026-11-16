@@ -27,8 +27,14 @@ export const REVIEW_TAGS = [
 
 export const MAX_TAGS = 3;
 
+export const SUBJECT_MAX = 100;
+
 export const reviewSchema = z.object({
-  subject_id: z.string().uuid({ message: "Choose the subject you took" }),
+  subject_name: z
+    .string()
+    .trim()
+    .min(2, "Enter the subject you took")
+    .max(SUBJECT_MAX, `Keep the subject under ${SUBJECT_MAX} characters`),
   rating: z.number().int().min(1, "Choose an overall rating").max(5),
   difficulty: z.number().int().min(1, "Choose how difficult or strict").max(5),
   would_recommend: z.boolean({ message: "Tell us if you'd recommend this professor" }),
@@ -50,11 +56,20 @@ export function toggleTag(selected: string[], tag: string): string[] {
   return [...selected, tag];
 }
 
+/** Message shown when the typed subject contains a restricted word. */
+export function restrictedSubjectMessage(word: string) {
+  return `The subject contains a word that isn't allowed ("${word}"). Please change the subject.`;
+}
+
 /** Turns a database error from posting a review into a message for the student. */
 export function reviewErrorMessage(error: { message?: string; code?: string } | null | undefined) {
   if (!error) return null;
   const msg = error.message ?? "";
   const restricted = msg.match(/RESTRICTED_WORD:(.+)/);
+  const restrictedSubject = msg.match(/RESTRICTED_SUBJECT:(.+)/);
+  if (restrictedSubject) {
+    return restrictedSubjectMessage((restrictedSubject[1] ?? "").trim());
+  }
   if (restricted) {
     return `Your comment contains a word that isn't allowed ("${(restricted[1] ?? "").trim()}"). Please revise your comment and try again.`;
   }

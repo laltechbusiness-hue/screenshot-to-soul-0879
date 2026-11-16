@@ -1,8 +1,9 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +14,8 @@ import {
   MAX_TAGS,
   RATING_LABELS,
   REVIEW_TAGS,
+  SUBJECT_MAX,
+  restrictedSubjectMessage,
   reviewErrorMessage,
   reviewSchema,
   toggleTag,
@@ -20,7 +23,27 @@ import {
 import type { ReviewRow } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 
-type Subject = { id: string; name: string };
+/** Checks the typed subject for restricted words shortly after the student stops typing. */
+function useRestrictedSubjectCheck(text: string, enabled: boolean) {
+  const [word, setWord] = useState<string | null>(null);
+  useEffect(() => {
+    const value = text.trim();
+    if (!enabled || value.length < 2) {
+      setWord(null);
+      return;
+    }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const { data, error } = await supabase.rpc("check_restricted_text", { _text: value });
+      if (!cancelled && !error) setWord(data ?? null);
+    }, 350);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [text, enabled]);
+  return word;
+}
 
 function ScalePicker({
   name,
@@ -72,16 +95,14 @@ function Field({ step, label, children, hint }: { step: number; label: string; c
 
 export function ReviewForm({
   professorId,
-  subjects,
   onDone,
   review,
 }: {
   professorId: string;
-  subjects: Subject[];
   onDone: () => void;
-  review?: Pick<ReviewRow, "id" | "subject_id" | "rating" | "difficulty" | "would_recommend" | "grade" | "tags" | "comment">;
+  review?: Pick<ReviewRow, "id" | "subject_name" | "rating" | "difficulty" | "would_recommend" | "grade" | "tags" | "comment">;
 }) {
-  const [subjectId, setSubjectId] = useState<string>(review?.subject_id ?? (subjects.length === 1 ? (subjects[0]?.id ?? "") : ""));
+  const [subjectName, setSubjectName] = useState<string>(review?.subject_name ?? "");
   const [rating, setRating] = useState<number | null>(review?.rating ?? null);
   const [difficulty, setDifficulty] = useState<number | null>(review?.difficulty ?? null);
   const [recommend, setRecommend] = useState<boolean | null>(review?.would_recommend ?? null);
@@ -90,12 +111,17 @@ export function ReviewForm({
   const [comment, setComment] = useState(review?.comment ?? "");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const restrictedSubject = useRestrictedSubjectCheck(subjectName, !review);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!review && restrictedSubject) {
+      setError(restrictedSubjectMessage(restrictedSubject));
+      return;
+    }
     const parsed = reviewSchema.safeParse({
-      subject_id: subjectId,
+      subject_name: subjectName,
       rating: rating ?? 0,
       difficulty: difficulty ?? 0,
       would_recommend: recommend ?? undefined,
@@ -135,18 +161,21 @@ export function ReviewForm({
   return (
     <form onSubmit={submit} className="space-y-6 rounded-2xl border border-border bg-card p-5 shadow-soft sm:p-6">
       <Field step={1} label="Subject taken">
-        <Select value={subjectId} onValueChange={setSubjectId} disabled={!!review}>
-          <SelectTrigger aria-label="Subject taken">
-            <SelectValue placeholder="Choose a subject" />
-          </SelectTrigger>
-          <SelectContent>
-            {subjects.map((s) => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Input
+          aria-label="Subject taken"
+          value={subjectName}
+          onChange={(e) => setSubjectName(e.target.value.slice(0, SUBJECT_MAX))}
+          disabled={!!review}
+          maxLength={SUBJECT_MAX}
+          placeholder="e.g. Data Structures"
+          aria-invalid={!!restrictedSubject}
+          aria-describedby={restrictedSubject ? "subject-restricted" : undefined}
+        />
+        {restrictedSubject && !review && (
+          <p id="subject-restricted" role="alert" className="text-sm text-destructive">
+            {restrictedSubjectMessage(restrictedSubject)}
+          </p>
+        )}
       </Field>
 
       <Field step={2} label="Overall professor rating">
