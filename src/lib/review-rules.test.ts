@@ -9,7 +9,7 @@ import {
 } from "./review-rules";
 
 const valid = {
-  subject_id: "6f1c1b7e-2a7c-4d5e-9f00-1a2b3c4d5e6f",
+  subject_name: "Data Structures",
   rating: 4,
   difficulty: 3,
   would_recommend: true,

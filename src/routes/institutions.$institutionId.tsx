@@ -79,7 +79,6 @@ function InstitutionPage() {
       <ul className="mt-6 space-y-3">
         {professors.map((p) => {
           const dept = (p.departments as { name: string } | null)?.name;
-          const subjects = (p.subjects as { name: string }[]) ?? [];
           const rec = p.review_count ? Math.round((p.recommend_count / p.review_count) * 100) : null;
           return (
             <li key={p.id}>
@@ -92,11 +91,6 @@ function InstitutionPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-display text-lg font-semibold leading-snug">{p.name}</p>
                   <p className="text-sm text-muted-foreground">{dept}</p>
-                  {subjects.length > 0 && (
-                    <p className="mt-1 truncate text-sm text-muted-foreground">
-                      {subjects.map((s) => s.name).join(" · ")}
-                    </p>
-                  )}
                   <p className="mt-1.5 text-xs text-muted-foreground">
                     {p.review_count
                       ? `${ratingLabel(Number(p.avg_rating))} · ${p.review_count} review${p.review_count === 1 ? "" : "s"}${rec !== null ? ` · ${rec}% would recommend` : ""}`

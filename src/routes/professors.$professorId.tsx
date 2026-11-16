@@ -118,7 +118,6 @@ function ProfessorPage() {
   const { professor } = data;
   const inst = professor.institutions as { id: string; name: string; location: string | null } | null;
   const dept = (professor.departments as { name: string } | null)?.name;
-  const subjects = (professor.subjects as { id: string; name: string }[]) ?? [];
   const rec = professor.review_count ? Math.round((professor.recommend_count / professor.review_count) * 100) : null;
 
   const refresh = () => {
@@ -168,8 +167,6 @@ function ProfessorPage() {
     toast.success("Review removed");
     refresh();
   }
-
-  const alreadyReviewedAll = !!mine.data && subjects.length > 0 && mine.data.size >= subjects.length;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -224,19 +221,6 @@ function ProfessorPage() {
           </div>
         </dl>
 
-        {subjects.length > 0 && (
-          <div className="mt-5">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Subjects taught</p>
-            <div className="flex flex-wrap gap-1.5">
-              {subjects.map((s) => (
-                <Badge key={s.id} variant="secondary" className="rounded-full font-normal">
-                  {s.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
-
         {tagCounts.length > 0 && (
           <div className="mt-5">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Students say</p>
@@ -262,7 +246,6 @@ function ProfessorPage() {
             </div>
             <ReviewForm
               professorId={professorId}
-              subjects={subjects.filter((s) => !mine.data || ![...mine.data].length || true)}
               onDone={() => {
                 setWriting(false);
                 refresh();
@@ -278,10 +261,6 @@ function ProfessorPage() {
             </div>
             {!user ? (
               <GoogleButton label="Sign in with Google to review" />
-            ) : subjects.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Reviews open once subjects are added.</p>
-            ) : alreadyReviewedAll ? (
-              <p className="text-sm text-muted-foreground">You've reviewed every subject for this professor.</p>
             ) : (
               <Button size="lg" onClick={() => setWriting(true)}>
                 <PenLine /> Write a review
@@ -302,7 +281,6 @@ function ProfessorPage() {
               key={editing.review.id}
               review={editing.review}
               professorId={professorId}
-              subjects={subjects}
               onDone={() => {
                 setEditing(null);
                 refresh();

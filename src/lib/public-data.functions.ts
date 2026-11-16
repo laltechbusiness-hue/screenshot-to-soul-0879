@@ -23,7 +23,7 @@ function publicClient() {
 }
 
 export const REVIEW_COLUMNS =
-  "id, professor_id, subject_id, rating, difficulty, would_recommend, grade, tags, comment, like_count, dislike_count, created_at, subjects(name)";
+  "id, professor_id, subject_name, rating, difficulty, would_recommend, grade, tags, comment, like_count, dislike_count, created_at";
 
 export const searchInstitutions = createServerFn({ method: "GET" })
   .inputValidator((d: { q?: string }) => z.object({ q: z.string().max(100).optional() }).parse(d))
@@ -59,7 +59,7 @@ export const getInstitution = createServerFn({ method: "GET" })
     if (!inst) return null;
     const { data: profs, error: pErr } = await sb
       .from("professors")
-      .select("id, name, review_count, avg_rating, avg_difficulty, recommend_count, departments(name), subjects(name)")
+      .select("id, name, review_count, avg_rating, avg_difficulty, recommend_count, departments(name)")
       .eq("institution_id", data.id)
       .order("name");
     if (pErr) throw new Error(pErr.message);
@@ -73,7 +73,7 @@ export const getProfessor = createServerFn({ method: "GET" })
     const { data: prof, error } = await sb
       .from("professors")
       .select(
-        "id, name, review_count, avg_rating, avg_difficulty, recommend_count, institutions(id, name, location), departments(name), subjects(id, name)",
+        "id, name, review_count, avg_rating, avg_difficulty, recommend_count, institutions(id, name, location), departments(name)",
       )
       .eq("id", data.id)
       .maybeSingle();
