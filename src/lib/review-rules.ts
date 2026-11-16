@@ -43,7 +43,6 @@ export const reviewSchema = z.object({
   comment: z
     .string()
     .trim()
-    .min(10, "Write at least 10 characters about your experience")
     .max(2000, "Keep your comment under 2000 characters"),
 });
 

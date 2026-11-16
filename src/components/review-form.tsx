@@ -245,7 +245,7 @@ export function ReviewForm({
         </div>
       </Field>
 
-      <Field step={7} label="Your experience">
+      <Field step={7} label="Your experience (optional)">
         <Textarea
           value={comment}
           onChange={(e) => setComment(e.target.value.slice(0, 2000))}
