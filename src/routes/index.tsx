@@ -17,10 +17,17 @@ export const Route = createFileRoute("/")({
       { title: "Faculty Reviews — Find Faculty reviews by college or university" },
       {
         name: "description",
-        content: "Search your college or university, find your professors, and read honest, anonymous student ratings and reviews.",
+        content:
+          "Search your college or university, find your professors, and read honest, anonymous student ratings and reviews.",
       },
-      { property: "og:title", content: "Faculty Reviews — Find Faculty reviews by college or university" },
-      { property: "og:description", content: "Search your college, find your professors, and read anonymous student reviews." },
+      {
+        property: "og:title",
+        content: "Faculty Reviews — Find Faculty reviews by college or university",
+      },
+      {
+        property: "og:description",
+        content: "Search your college, find your professors, and read anonymous student reviews.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -72,7 +79,9 @@ function Home() {
         </h2>
         {institutions.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground">
-            {q ? "No college or university matches that search yet." : "No colleges or universities have been added yet."}
+            {q
+              ? "No college or university matches that search yet."
+              : "No colleges or universities have been added yet."}
           </div>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
@@ -81,6 +90,7 @@ function Home() {
                 <Link
                   to="/institutions/$institutionId"
                   params={{ institutionId: inst.id }}
+                  preload="intent"
                   className="group flex items-center gap-4 px-5 py-4 transition-colors hover:bg-accent/60"
                 >
                   <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">

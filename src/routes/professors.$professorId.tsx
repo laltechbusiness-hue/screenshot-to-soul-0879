@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { GoogleButton } from "@/components/google-button";
 import { RatingTile } from "@/components/rating";
 import { ReviewCard } from "@/components/review-card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ReviewForm } from "@/components/review-form";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,7 +26,12 @@ export const Route = createFileRoute("/professors/$professorId")({
     const data = await context.queryClient.ensureQueryData(professorQuery(params.professorId));
     if (!data) throw notFound();
     const inst = data.professor.institutions as { name: string } | null;
-    return { name: data.professor.name, institution: inst?.name ?? "", avg: data.professor.avg_rating, count: data.professor.review_count };
+    return {
+      name: data.professor.name,
+      institution: inst?.name ?? "",
+      avg: data.professor.avg_rating,
+      count: data.professor.review_count,
+    };
   },
   head: ({ loaderData }) => {
     const title = loaderData
@@ -52,6 +63,11 @@ export const Route = createFileRoute("/professors/$professorId")({
     </div>
   ),
   component: ProfessorPage,
+  pendingComponent: () => (
+    <p role="status" className="mx-auto max-w-3xl px-4 py-8">
+      Loading professor...
+    </p>
+  ),
 });
 
 type Sort = "newest" | "helpful";
@@ -82,7 +98,10 @@ function ProfessorPage() {
     queryKey: ["my-votes", professorId, uid, reviewIds.length],
     enabled: !!uid && reviewIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("review_votes").select("review_id, vote").in("review_id", reviewIds);
+      const { data, error } = await supabase
+        .from("review_votes")
+        .select("review_id, vote")
+        .in("review_id", reviewIds);
       if (error) throw error;
       return Object.fromEntries((data ?? []).map((v) => [v.review_id, v.vote as -1 | 1]));
     },
@@ -104,21 +123,30 @@ function ProfessorPage() {
 
   const sorted = useMemo(() => {
     const list = [...reviews];
-    if (sort === "helpful") list.sort((a, b) => b.like_count - b.dislike_count - (a.like_count - a.dislike_count));
+    if (sort === "helpful")
+      list.sort((a, b) => b.like_count - b.dislike_count - (a.like_count - a.dislike_count));
     return list;
   }, [reviews, sort]);
 
   const tagCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const r of reviews) for (const t of r.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
-    return REVIEW_TAGS.map((t) => [t, counts.get(t) ?? 0] as const).filter(([, c]) => c > 0).sort((a, b) => b[1] - a[1]);
+    return REVIEW_TAGS.map((t) => [t, counts.get(t) ?? 0] as const)
+      .filter(([, c]) => c > 0)
+      .sort((a, b) => b[1] - a[1]);
   }, [reviews]);
 
   if (!data) return null;
   const { professor } = data;
-  const inst = professor.institutions as { id: string; name: string; location: string | null } | null;
+  const inst = professor.institutions as {
+    id: string;
+    name: string;
+    location: string | null;
+  } | null;
   const dept = (professor.departments as { name: string } | null)?.name;
-  const rec = professor.review_count ? Math.round((professor.recommend_count / professor.review_count) * 100) : null;
+  const rec = professor.review_count
+    ? Math.round((professor.recommend_count / professor.review_count) * 100)
+    : null;
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["professor", professorId] });
@@ -131,7 +159,9 @@ function ProfessorPage() {
     const { error } =
       current === v
         ? await supabase.from("review_votes").delete().eq("review_id", review.id).eq("user_id", uid)
-        : await supabase.from("review_votes").upsert({ review_id: review.id, user_id: uid, vote: v });
+        : await supabase
+            .from("review_votes")
+            .upsert({ review_id: review.id, user_id: uid, vote: v });
     if (error) {
       toast.error(error.message);
       return;
@@ -154,7 +184,12 @@ function ProfessorPage() {
 
   async function remove(review: ReviewRow) {
     if (!confirm("Remove this review permanently?")) return;
-    const { data: deleted, error } = await supabase.from("reviews").delete().eq("id", review.id).select("id").maybeSingle();
+    const { data: deleted, error } = await supabase
+      .from("reviews")
+      .delete()
+      .eq("id", review.id)
+      .select("id")
+      .maybeSingle();
     if (error) {
       toast.error(error.message);
       return;
@@ -195,7 +230,8 @@ function ProfessorPage() {
                   <span className="font-semibold">{ratingLabel(Number(professor.avg_rating))}</span>
                   <span className="text-muted-foreground">
                     {" "}
-                    · based on {professor.review_count} review{professor.review_count === 1 ? "" : "s"}
+                    · based on {professor.review_count} review
+                    {professor.review_count === 1 ? "" : "s"}
                   </span>
                 </>
               ) : (
@@ -223,7 +259,9 @@ function ProfessorPage() {
 
         {tagCounts.length > 0 && (
           <div className="mt-5">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Students say</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Students say
+            </p>
             <div className="flex flex-wrap gap-1.5">
               {tagCounts.map(([t, c]) => (
                 <Badge key={t} variant="outline" className="rounded-full font-normal">
@@ -257,7 +295,9 @@ function ProfessorPage() {
           <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-dashed border-primary/40 bg-primary-soft/50 p-5 sm:flex-row sm:items-center">
             <div>
               <p className="font-semibold">Took a class with {professor.name.split(" ")[0]}?</p>
-              <p className="text-sm text-muted-foreground">Share your experience anonymously to help other students.</p>
+              <p className="text-sm text-muted-foreground">
+                Share your experience anonymously to help other students.
+              </p>
             </div>
             {!user ? (
               <GoogleButton label="Sign in with Google to review" />
@@ -270,7 +310,10 @@ function ProfessorPage() {
         )}
       </section>
 
-      <Dialog open={!!editing && editing.userId === uid} onOpenChange={(open) => !open && setEditing(null)}>
+      <Dialog
+        open={!!editing && editing.userId === uid}
+        onOpenChange={(open) => !open && setEditing(null)}
+      >
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Edit your review</DialogTitle>
@@ -293,10 +336,17 @@ function ProfessorPage() {
       <section className="mt-10">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="text-2xl font-semibold">
-            Reviews <span className="font-sans text-base font-normal text-muted-foreground">({reviews.length})</span>
+            Reviews{" "}
+            <span className="font-sans text-base font-normal text-muted-foreground">
+              ({reviews.length})
+            </span>
           </h2>
           {reviews.length > 1 && (
-            <div className="flex rounded-lg border border-border bg-card p-0.5 text-sm" role="group" aria-label="Sort reviews">
+            <div
+              className="flex rounded-lg border border-border bg-card p-0.5 text-sm"
+              role="group"
+              aria-label="Sort reviews"
+            >
               {(["newest", "helpful"] as const).map((s) => (
                 <button
                   key={s}

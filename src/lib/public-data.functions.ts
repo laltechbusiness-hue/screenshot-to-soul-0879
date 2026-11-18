@@ -13,7 +13,8 @@ function publicClient() {
     global: {
       fetch: (input, init) => {
         const headers = new Headers(init?.headers);
-        if (isNewKey && headers.get("Authorization") === `Bearer ${key}`) headers.delete("Authorization");
+        if (isNewKey && headers.get("Authorization") === `Bearer ${key}`)
+          headers.delete("Authorization");
         headers.set("apikey", key);
         return fetch(input, { ...init, headers });
       },
@@ -50,41 +51,86 @@ export const getInstitution = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
-    const { data: inst, error } = await sb
-      .from("institutions")
-      .select("id, name, location")
-      .eq("id", data.id)
-      .maybeSingle();
+    const [institutionResult, departmentsResult] = await Promise.all([
+      sb
+        .from("institutions")
+        .select("id, name, location, professors(count)")
+        .eq("id", data.id)
+        .maybeSingle(),
+      sb.from("departments").select("id, name").eq("institution_id", data.id).order("name"),
+    ]);
+    const { data: inst, error } = institutionResult;
     if (error) throw new Error(error.message);
     if (!inst) return null;
-    const { data: profs, error: pErr } = await sb
+    const { data: departments, error: dErr } = departmentsResult;
+    if (dErr) throw new Error(dErr.message);
+    return {
+      institution: { id: inst.id, name: inst.name, location: inst.location },
+      professorCount: inst.professors[0]?.count ?? 0,
+      departments: departments ?? [],
+    };
+  });
+
+export const FACULTY_PAGE_SIZE = 40;
+
+export const searchProfessors = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: string; q?: string; departmentId?: string; page?: number }) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        q: z.string().trim().max(200).default(""),
+        departmentId: z.string().uuid().optional(),
+        page: z.number().int().min(0).max(1_000_000).default(0),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const sb = publicClient();
+    let query = sb
       .from("professors")
-      .select("id, name, review_count, avg_rating, avg_difficulty, recommend_count, departments(name)")
-      .eq("institution_id", data.id)
-      .order("name");
-    if (pErr) throw new Error(pErr.message);
-    return { institution: inst, professors: profs ?? [] };
+      .select(
+        "id, name, review_count, avg_rating, avg_difficulty, recommend_count, departments(name)",
+        { count: "exact" },
+      )
+      .eq("institution_id", data.id);
+    // Treat wildcard characters as literal name characters, matching the old includes search.
+    if (data.q) query = query.ilike("name", `%${data.q.replace(/[\\%_]/g, "\\$&")}%`);
+    if (data.departmentId) query = query.eq("department_id", data.departmentId);
+    const {
+      data: professors,
+      count,
+      error,
+    } = await query
+      .order("name")
+      .order("id")
+      .range(data.page * FACULTY_PAGE_SIZE, (data.page + 1) * FACULTY_PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    return { professors: professors ?? [], count: count ?? 0 };
   });
 
 export const getProfessor = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
-    const { data: prof, error } = await sb
-      .from("professors")
-      .select(
-        "id, name, review_count, avg_rating, avg_difficulty, recommend_count, institutions(id, name, location), departments(name)",
-      )
-      .eq("id", data.id)
-      .maybeSingle();
+    const [profResult, reviewResult] = await Promise.all([
+      sb
+        .from("professors")
+        .select(
+          "id, name, review_count, avg_rating, avg_difficulty, recommend_count, institutions(id, name, location), departments(name)",
+        )
+        .eq("id", data.id)
+        .maybeSingle(),
+      sb
+        .from("reviews")
+        .select(REVIEW_COLUMNS)
+        .eq("professor_id", data.id)
+        .order("created_at", { ascending: false })
+        .limit(500),
+    ]);
+    const { data: prof, error } = profResult;
     if (error) throw new Error(error.message);
     if (!prof) return null;
-    const { data: reviews, error: rErr } = await sb
-      .from("reviews")
-      .select(REVIEW_COLUMNS)
-      .eq("professor_id", data.id)
-      .order("created_at", { ascending: false })
-      .limit(500);
+    const { data: reviews, error: rErr } = reviewResult;
     if (rErr) throw new Error(rErr.message);
     const rows = reviews ?? [];
     const usernames = new Map<string, string>();
