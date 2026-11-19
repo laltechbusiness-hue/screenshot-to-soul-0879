@@ -52,6 +52,13 @@ function TermsOfService() {
       </section>
 
       <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Disclaimer of affiliation and liability</h2>
+        <p>
+          Faculty Reviews is an independent, student-built informational platform and is not affiliated with, endorsed by, or officially connected to any university, college, or educational institution listed on the site. To the fullest extent permitted by law, Faculty Reviews is not liable for decisions made based on user-submitted reviews or aggregate ratings.
+        </p>
+      </section>
+
+      <section className="space-y-2">
         <h2 className="text-xl font-semibold">Contact</h2>
         <p>
           For questions or concerns about content, email{" "}

@@ -52,7 +52,8 @@ export function SiteFooter() {
     <footer className="mt-16 border-t border-border">
       <div className="mx-auto max-w-5xl px-4 py-8 text-sm text-muted-foreground">
         Reviews are written anonymously by students and reflect their personal experience.
-        <nav aria-label="Legal" className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+        <nav aria-label="Site information" className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+          <Link to="/about" className="underline underline-offset-4">About</Link>
           <Link to="/privacy" className="underline underline-offset-4">Privacy Policy</Link>
           <Link to="/terms" className="underline underline-offset-4">Terms of Service</Link>
         </nav>

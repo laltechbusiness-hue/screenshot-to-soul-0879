@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { ArrowLeft, PenLine } from "lucide-react";
@@ -31,6 +31,7 @@ export const Route = createFileRoute("/professors/$professorId")({
       institution: inst?.name ?? "",
       avg: data.professor.avg_rating,
       count: data.professor.review_count,
+      hasReviews: data.reviews.length > 0,
     };
   },
   head: ({ loaderData }) => {
@@ -50,7 +51,10 @@ export const Route = createFileRoute("/professors/$professorId")({
         { property: "og:description", content: description },
         { property: "og:type", content: "profile" },
         { name: "twitter:card", content: "summary_large_image" },
-        ...(loaderData ? [] : [{ name: "robots", content: "noindex" }]),
+        {
+          name: "robots",
+          content: loaderData?.hasReviews ? "index, follow" : "noindex, follow",
+        },
       ],
     };
   },
@@ -75,6 +79,7 @@ type Sort = "newest" | "helpful";
 function ProfessorPage() {
   const { professorId } = Route.useParams();
   const qc = useQueryClient();
+  const router = useRouter();
   const { data } = useSuspenseQuery(professorQuery(professorId));
   const { user, isAdmin, signInWithGoogle } = useAuth();
   const [editing, setEditing] = useState<{ review: ReviewRow; userId: string } | null>(null);
@@ -148,8 +153,10 @@ function ProfessorPage() {
     ? Math.round((professor.recommend_count / professor.review_count) * 100)
     : null;
 
-  const refresh = () => {
-    qc.invalidateQueries({ queryKey: ["professor", professorId] });
+  const refresh = async () => {
+    await qc.invalidateQueries({ queryKey: ["professor", professorId] });
+    // Recompute server-backed route metadata after the review list changes.
+    await router.invalidate();
     qc.invalidateQueries({ queryKey: ["institution"] });
   };
 

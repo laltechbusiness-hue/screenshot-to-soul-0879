@@ -50,6 +50,15 @@ function PrivacyPolicy() {
       </section>
 
       <section className="space-y-2">
+        <h2 className="text-xl font-semibold">Advertising and cookies</h2>
+        <p>
+          Faculty Reviews uses third-party advertising services, including Google AdSense, to display ads and support the operation of the platform. Third-party vendors, including Google, use cookies to serve ads based on a user's prior visits to this website or other websites on the internet.
+
+Google's use of advertising cookies enables it and its partners to serve ads to visitors based on their visits to Faculty Reviews and/or other sites across the internet. You may opt out of personalized advertising by visiting Google Ads Settings or by visiting www.aboutads.info.
+        </p>
+      </section>
+
+      <section className="space-y-2">
         <h2 className="text-xl font-semibold">Retention and your choices</h2>
         <p>
           We retain account information and contributions as needed to operate the service. You can
