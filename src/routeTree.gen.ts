@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as InstitutionsInstitutionIdRouteImport } from './routes/institutions.$institutionId'
 import { Route as ProfessorsProfessorIdRouteImport } from './routes/professors.$professorId'
@@ -49,6 +50,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/terms': typeof TermsRoute
   '/institutions/$institutionId': typeof InstitutionsInstitutionIdRoute
   '/professors/$professorId': typeof ProfessorsProfessorIdRoute
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacy'
     | '/profile'
+    | '/sitemap.xml'
     | '/terms'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacy'
     | '/profile'
+    | '/sitemap.xml'
     | '/terms'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/privacy'
     | '/profile'
+    | '/sitemap.xml'
     | '/terms'
     | '/institutions/$institutionId'
     | '/professors/$professorId'
@@ -143,6 +155,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
   InstitutionsInstitutionIdRoute: typeof InstitutionsInstitutionIdRoute
   ProfessorsProfessorIdRoute: typeof ProfessorsProfessorIdRoute
@@ -192,6 +205,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
   InstitutionsInstitutionIdRoute: InstitutionsInstitutionIdRoute,
   ProfessorsProfessorIdRoute: ProfessorsProfessorIdRoute,

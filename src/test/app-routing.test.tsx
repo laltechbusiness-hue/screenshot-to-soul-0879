@@ -7,6 +7,10 @@ import { routeTree } from "@/routeTree.gen";
 // Match routes without running loaders or rendering: loaders may need a server or
 // network the test run lacks, and jsdom never loads the stylesheets React waits on.
 describe("App routing", () => {
+  it("matches the XML sitemap endpoint", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    expect(router.matchRoutes("/sitemap.xml").at(-1)?.routeId).toBe("/sitemap.xml");
+  });
   it("matches the About page", () => {
     const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
     expect(router.matchRoutes("/about").at(-1)?.routeId).toBe("/about");
