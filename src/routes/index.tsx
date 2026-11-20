@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Building2, MapPin, Search } from "lucide-react";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
+import { ReviewedProfessorCount } from "@/components/reviewed-professor-count";
 import { institutionsQuery } from "@/lib/queries";
 
 const searchSchema = z.object({ q: z.string().max(100).optional().catch(undefined) });
@@ -59,6 +60,7 @@ function Home() {
           <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
             Honest, anonymous reviews from students. Start with your college or university.
           </p>
+          <ReviewedProfessorCount />
           <label className="relative mx-auto mt-8 block max-w-xl">
             <span className="sr-only">Search colleges and universities</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />

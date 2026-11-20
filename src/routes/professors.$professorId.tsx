@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GoogleButton } from "@/components/google-button";
 import { RatingTile } from "@/components/rating";
+import { ProfessorShare } from "@/components/professor-share";
 import { ReviewCard } from "@/components/review-card";
 import {
   Dialog,
@@ -246,6 +247,7 @@ function ProfessorPage() {
               )}
             </p>
           </div>
+          <ProfessorShare professorId={professorId} name={professor.name} />
         </div>
 
         <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">

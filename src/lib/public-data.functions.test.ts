@@ -14,7 +14,7 @@ vi.mock("@tanstack/react-start", () => ({
   }),
 }));
 
-import { FACULTY_PAGE_SIZE, searchProfessors } from "./public-data.functions";
+import { FACULTY_PAGE_SIZE, searchProfessors, getReviewedProfessorCount } from "./public-data.functions";
 
 const institutionId = "00000000-0000-4000-8000-000000000001";
 const departmentId = "00000000-0000-4000-8000-000000000002";
@@ -39,6 +39,17 @@ describe("Faculty database search", () => {
     expect(result.count).toBe(2032);
     expect(result.professors).toEqual([{ id: "faculty-1041" }]);
     expect(FACULTY_PAGE_SIZE).toBe(40);
+  });
+
+  it("counts distinct reviewed professor profiles without downloading reviews", async () => {
+    query.select.mockResolvedValue({ count: 57, error: null });
+    expect(await getReviewedProfessorCount({ data: {} })).toBe(57);
+    expect(query.select).toHaveBeenCalledWith("id, reviews!inner(id)", { count: "exact", head: true });
+  });
+
+  it("does not report a database failure as zero reviewed professors", async () => {
+    query.select.mockResolvedValue({ count: null, error: { message: "Unavailable" } });
+    await expect(getReviewedProfessorCount({ data: {} })).rejects.toThrow("Unavailable");
   });
 
   it("applies name and department restrictions in the database before pagination", async () => {

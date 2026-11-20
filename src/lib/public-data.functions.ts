@@ -26,6 +26,17 @@ export function publicClient() {
 export const REVIEW_COLUMNS =
   "id, professor_id, subject_name, rating, difficulty, would_recommend, grade, tags, comment, like_count, dislike_count, created_at";
 
+export const getReviewedProfessorCount = createServerFn({ method: "GET" })
+  .inputValidator((data: Record<string, never>) => z.object({}).parse(data))
+  .handler(async () => {
+    const { count, error } = await publicClient()
+      .from("professors")
+      .select("id, reviews!inner(id)", { count: "exact", head: true });
+    if (error) throw new Error(error.message);
+    if (count === null) throw new Error("Reviewed professor count unavailable");
+    return count;
+  });
+
 export const searchInstitutions = createServerFn({ method: "GET" })
   .inputValidator((d: { q?: string }) => z.object({ q: z.string().max(100).optional() }).parse(d))
   .handler(async ({ data }) => {
